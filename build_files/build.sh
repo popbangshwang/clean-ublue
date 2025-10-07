@@ -1,24 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -oue pipefail
 
-set -ouex pipefail
+echo "🔧 Starting build.sh..."
 
-### Install packages
-
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
-
-# this installs a package from fedora repos
-dnf5 install -y tmux 
-
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
-
-#### Example for enabling a System Unit File
-
+### Enable any needed services (you already do this)
 systemctl enable podman.socket
+
+### Run install script if packages.txt exists
+if [[ -f /customizations/packages.txt ]]; then
+    echo "📦 Installing packages from packages.txt..."
+    bash /customizations/scripts/10-install-packages.sh
+fi
+
+### Run remove script if remove-packages.txt exists
+if [[ -f /customizations/remove-packages.txt ]]; then
+    echo "🧹 Removing packages from remove-packages.txt..."
+    bash /customizations/scripts/20-remove-packages.sh
+fi
+
+echo "✅ build.sh complete!"
